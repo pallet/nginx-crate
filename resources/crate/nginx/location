@@ -2,7 +2,7 @@ location ~{location} {
   ~(when root (format "root %s;" root))
   index  ~(apply str (interpose " " index));
   ~(when proxy_pass (format "proxy_pass %s;" proxy_pass))
-  ~(when proxy_headers (clojure.string/join "\n" (map (fn [[k v]] (format "proxy_set_header %s %s;" k v)) proxy_headers)))
+  ~(when proxy_headers (clojure.string/join "\n  " (map (fn [[k v]] (format "proxy_set_header %s %s;" k v)) proxy_headers)))
   ~(when passenger-enabled (format "passenger_enabled %s;" passenger-enabled))
   ~(when rails-env (format "rails_env %s;" rails-env))
 }
