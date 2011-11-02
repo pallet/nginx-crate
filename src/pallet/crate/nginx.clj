@@ -235,7 +235,9 @@
                             (reduce
                              merge {:locations locations}
                              [nginx-default-site
-                              (dissoc options :locations)])))))]
+                              (dissoc options :locations)]))
+                  :no-versioning true
+                  :md5 nil)))]
     (->
      session
      (directory/directory (format "%s/sites-available" nginx-conf-dir))
