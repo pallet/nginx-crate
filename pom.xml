@@ -8,7 +8,7 @@
     <relativePath>..</relativePath>
   </parent>
   <artifactId>nginx</artifactId>
-  <version>0.5.1-SNAPSHOT</version>
+  <version>0.6.0-SNAPSHOT</version>
 
   <dependencies>
     <dependency>
@@ -21,4 +21,11 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+  <!-- make sure we can find the parent pom -->
+  <repositories>
+    <repository>
+      <id>sonatype</id>
+      <url>http://oss.sonatype.org/content/repositories/releases</url>
+    </repository>
+  </repositories>
 </project>
