@@ -81,6 +81,7 @@
       :root nil
       :index ["index.html" "index.htm"]
       :proxy_pass nil
+      :proxy_headers nil
       :rails-env nil
       :passenger-enabled nil})
 

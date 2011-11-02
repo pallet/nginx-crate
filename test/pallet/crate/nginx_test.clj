@@ -17,7 +17,7 @@
            (directory/directory "/etc/nginx/sites-enabled")
            (remote-file/remote-file
             "/etc/nginx/sites-enabled/mysite"
-            :content "server {\n  listen       80;\n  server_name  localhost;\n\n  access_log  /var/log/nginx/access.log;\n\nlocation / {\n  root /some/path;\n  index  index.html index.htm;\n  \n  \n  \n}\n\nlocation /a {\n  \n  index  index.html index.htm;\n  proxy_pass localhost:8080;\n  \n  \n}\n\n}\n")
+            :content "server {\n  listen       80;\n  server_name  localhost;\n\n  access_log  /var/log/nginx/access.log;\n\nlocation / {\n  root /some/path;\n  index  index.html index.htm;\n  \n  \n  \n  \n}\n\nlocation /a {\n  \n  index  index.html index.htm;\n  proxy_pass localhost:8080;\n  proxy_set_header X-Real-IP \\$remote_addr;\nproxy_set_header X-Forwarded-For \\$proxy_add_x_forwarded_for;\nproxy_set_header Host \\$http_host;\n  \n  \n}\n\n}\n")
            (file/file
             "/etc/nginx/sites-available/mysite" :action :delete :force true)))
          (first
@@ -26,4 +26,7 @@
            (site "mysite"
                  :locations [{:location "/" :root "/some/path"}
                              {:location "/a"
-                              :proxy_pass "localhost:8080"}]))))))
+                              :proxy_pass "localhost:8080"
+                              :proxy_headers {"X-Real-IP" "\\$remote_addr"
+                                              "X-Forwarded-For" "\\$proxy_add_x_forwarded_for"
+                                              "Host" "\\$http_host"}}]))))))
