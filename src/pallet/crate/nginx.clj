@@ -26,7 +26,7 @@
      {"0.7.65" "abc4f76af450eedeb063158bd963feaa"})
 
 (defn ftp-path [version]
-  (format "http://sysoev.ru/nginx/nginx-%s.tar.gz" version))
+  (format "http://nginx.org/download/nginx-%s.tar.gz" version))
 
 (def nginx-conf-dir "/etc/nginx")
 (def nginx-install-dir "/opt/nginx")
@@ -213,7 +213,7 @@
 :listen        -- address to listen on
 :server_name   -- name
 :locations     -- locations (a seq of maps, with keys :location, :root
-                  :index, :proxy_pass :passenger-enabled :rails-env)"
+                  :index, :proxy_pass, :proxy_headers ( a map of headers to their values) :passenger-enabled :rails-env)"
   [session name & {:keys [locations action] :or {action :enable} :as options}]
   (let [available (format "%s/sites-available/%s" nginx-conf-dir name)
         enabled (format "%s/sites-enabled/%s" nginx-conf-dir name)
@@ -234,7 +234,10 @@
                             (reduce
                              merge {:locations locations}
                              [nginx-default-site
-                              (dissoc options :locations)])))))]
+                              (dissoc options :locations)]))
+                  :no-versioning true
+                  :md5 nil ;; disable md5s, so they don't show up in the sites-enabled directory
+                  )))]
     (->
      session
      (directory/directory (format "%s/sites-available" nginx-conf-dir))
