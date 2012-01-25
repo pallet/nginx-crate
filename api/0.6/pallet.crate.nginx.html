@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html><head><link href="css/default.css" rel="stylesheet" type="text/css"><script src="js/jquery.min.js" type="text/javascript"></script><script src="js/page_effects.js" type="text/javascript"></script><title>pallet.crate.nginx documentation</title></head><body><div id="header"><h1><a href="index.html">Nginx 0.6.0-SNAPSHOT API documentation</a></h1></div><div class="sidebar" id="namespaces"><h3>Namespaces</h3><ul><li class="current"><a href="pallet.crate.nginx.html">pallet.crate.nginx</a></li></ul></div><div class="sidebar" id="vars"><h3>Public Vars</h3><ul><li><a href="pallet.crate.nginx.html#var-init">init</a></li><li><a href="pallet.crate.nginx.html#var-nginx">nginx</a></li><li><a href="pallet.crate.nginx.html#var-site">site</a></li></ul></div><div class="namespace-docs" id="content"><h2>pallet.crate.nginx documentation</h2><pre class="doc">Crate for nginx management functions
+</pre><div class="public" id="var-init"><h3>init</h3><div class="usage"><code>(init session &amp; {:as options})</code></div><pre class="doc">Creates a nginx init script.
+</pre></div><div class="public" id="var-nginx"><h3>nginx</h3><div class="usage"><code>(nginx session &amp; options)</code></div><pre class="doc">Install nginx from source. Options:
+:version version-string   -- specify the version (default &quot;0.7.65&quot;)
+:configuration map        -- map of values for nginx.conf</pre></div><div class="public" id="var-site"><h3>site</h3><div class="usage"><code>(site session name &amp; {:keys [locations action], :or {action :enable}, :as options})</code></div><pre class="doc">Enable or disable a site.  Options:
+:listen        -- address to listen on
+:server_name   -- name
+:locations     -- locations (a seq of maps, with keys :location, :root
+                  :index, :proxy_pass, :proxy_headers ( a map of headers to their values) :passenger-enabled :rails-env)</pre></div></div></body></html>
