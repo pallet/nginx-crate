@@ -194,7 +194,6 @@
     (format "%s/mime.types.default" nginx-conf-dir)
     :action :delete)))
 
-
 (defn init
   "Creates a nginx init script."
   [session & {:as options}]
@@ -206,7 +205,14 @@
               (template/find-template nginx-init-script session))
     :literal true)
    (if-not-> (:no-enable options)
-     (service/service "nginx" :action :enable))))
+             (service/service "nginx" :action :enable))))
+
+(defn control
+  "Control (start, stop, restart) the nginx service"
+  [session action]
+  (->
+   session
+   (service/service "nginx" :action action)))
 
 (defn site
   "Enable or disable a site.  Options:
