@@ -20,13 +20,14 @@
   (:use pallet.thread-expr))
 
 (def src-packages
-     ["libpcre3" "libpcre3-dev" "libssl" "libssl-dev"])
+     ["libpcre3" "libpcre3-dev" "libssl" "libssl-dev" "build-essential"])
 
 (def nginx-md5s
-     {"0.7.65" "abc4f76af450eedeb063158bd963feaa"})
+  {"0.7.65" "abc4f76af450eedeb063158bd963feaa"
+   "1.1.18" "82f4b4b1fba68f5f83cc2c641fb6c4c5"})
 
 (defn ftp-path [version]
-  (format "http://sysoev.ru/nginx/nginx-%s.tar.gz" version))
+  (format "http://nginx.org/download/nginx-%s.tar.gz" version))
 
 (def nginx-conf-dir "/etc/nginx")
 (def nginx-install-dir "/opt/nginx")
@@ -45,7 +46,7 @@
 (def nginx-mime-conf "crate/nginx/mime.types")
 
 (def nginx-defaults
-     {:version "0.7.65"
+     {:version "1.1.18"
       :modules [:http_ssl_module :http_gzip_static_module]})
 
 (def nginx-default-conf
@@ -95,7 +96,7 @@
         modules (options :version)
         basename (str "nginx-" version)
         tarfile (str basename ".tar.gz")
-        tarpath (str (stevedore/script (tmp-dir)) "/" tarfile)
+        tarpath (str "/tmp/" tarfile)
         options (if (:passenger options)
                   (update-in
                    options [:add-modules]
@@ -194,7 +195,6 @@
     (format "%s/mime.types.default" nginx-conf-dir)
     :action :delete)))
 
-
 (defn init
   "Creates a nginx init script."
   [session & {:as options}]
@@ -206,7 +206,14 @@
               (template/find-template nginx-init-script session))
     :literal true)
    (if-not-> (:no-enable options)
-     (service/service "nginx" :action :enable))))
+             (service/service "nginx" :action :enable))))
+
+(defn control
+  "Control (start, stop, restart) the nginx service"
+  [session action]
+  (->
+   session
+   (service/service "nginx" :action action)))
 
 (defn site
   "Enable or disable a site.  Options:
@@ -215,8 +222,8 @@
 :locations     -- locations (a seq of maps, with keys :location, :root
                   :index, :proxy_pass :passenger-enabled :rails-env)"
   [session name & {:keys [locations action] :or {action :enable} :as options}]
-  (let [available (format "%s/sites-available/%s" nginx-conf-dir name)
-        enabled (format "%s/sites-enabled/%s" nginx-conf-dir name)
+  (let [available (format "%s/sites-available/%s.conf" nginx-conf-dir name)
+        enabled (format "%s/sites-enabled/%s.conf" nginx-conf-dir name)
         site (fn [session filename]
                (let [locations (string/join
                                 \newline
