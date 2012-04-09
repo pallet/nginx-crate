@@ -23,10 +23,11 @@
      ["libpcre3" "libpcre3-dev" "libssl" "libssl-dev" "build-essential"])
 
 (def nginx-md5s
-     {"0.7.65" "abc4f76af450eedeb063158bd963feaa"})
+  {"0.7.65" "abc4f76af450eedeb063158bd963feaa"
+   "1.1.18" "82f4b4b1fba68f5f83cc2c641fb6c4c5"})
 
 (defn ftp-path [version]
-  (format "http://sysoev.ru/nginx/nginx-%s.tar.gz" version))
+  (format "http://nginx.org/download/nginx-%s.tar.gz" version))
 
 (def nginx-conf-dir "/etc/nginx")
 (def nginx-install-dir "/opt/nginx")
@@ -45,7 +46,7 @@
 (def nginx-mime-conf "crate/nginx/mime.types")
 
 (def nginx-defaults
-     {:version "0.7.65"
+     {:version "1.1.18"
       :modules [:http_ssl_module :http_gzip_static_module]})
 
 (def nginx-default-conf
