@@ -215,8 +215,8 @@
 :locations     -- locations (a seq of maps, with keys :location, :root
                   :index, :proxy_pass :passenger-enabled :rails-env)"
   [session name & {:keys [locations action] :or {action :enable} :as options}]
-  (let [available (format "%s/sites-available/%s" nginx-conf-dir name)
-        enabled (format "%s/sites-enabled/%s" nginx-conf-dir name)
+  (let [available (format "%s/sites-available/%s.conf" nginx-conf-dir name)
+        enabled (format "%s/sites-enabled/%s.conf" nginx-conf-dir name)
         site (fn [session filename]
                (let [locations (string/join
                                 \newline
