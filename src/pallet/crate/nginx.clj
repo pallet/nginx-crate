@@ -95,7 +95,7 @@
         modules (options :version)
         basename (str "nginx-" version)
         tarfile (str basename ".tar.gz")
-        tarpath (str (stevedore/script (tmp-dir)) "/" tarfile)
+        tarpath (str (stevedore/script (~tmp-dir)) "/" tarfile)
         options (if (:passenger options)
                   (update-in
                    options [:add-modules]
