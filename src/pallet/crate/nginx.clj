@@ -20,7 +20,7 @@
   (:use pallet.thread-expr))
 
 (def src-packages
-     ["libpcre3" "libpcre3-dev" "libssl" "libssl-dev"])
+     ["libpcre3" "libpcre3-dev" "libssl" "libssl-dev" "build-essential"])
 
 (def nginx-md5s
      {"0.7.65" "abc4f76af450eedeb063158bd963feaa"})
