@@ -17,7 +17,9 @@
    [pallet.template :as template]
    [pallet.utils :as utils]
    [clojure.string :as string])
-  (:use pallet.thread-expr))
+  (:use
+   pallet.thread-expr
+   [pallet.script.lib :only [tmp-dir]]))
 
 (def src-packages
      ["libpcre3" "libpcre3-dev" "libssl" "libssl-dev"])
