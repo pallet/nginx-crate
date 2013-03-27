@@ -72,7 +72,10 @@
 
 (def default-site
   {:sites [{ :action :enable 
-           :name "default"
+            ;; We want all sites to have the suffix .site
+            ;; otherwise the md5 stuff will cause the md5 stuff
+            ;; to load and nginx will not be happy
+           :name "default.site"
            :upstreams [] 
            :servers [{:server-name "localhost"
                       :listen "80"
@@ -103,6 +106,8 @@
 (defmethod str-location-line :index [ky vls]
   (format "\t\t%s %s;\n" (convert-key-to-nginx ky)
           (join-with-space vls)))
+(defmethod str-location-line :access-log [key vals]
+  (format "\t%s %s;\n" (convert-key-to-nginx key) (join-with-space vals))) 
 (defmethod str-location-line :default [key val]
   (format "\t\t%s %s;\n" (convert-key-to-nginx key) val))
 
@@ -111,8 +116,6 @@
 ;; vals for this should e an array of strings to print out
 (defmethod str-server-line :access-log [key vals]
   (format "\t%s %s;\n" (convert-key-to-nginx key) (join-with-space vals))) 
-(defmethod str-server-line :default [key vals]
-  (format "\t%s %s;\n" (convert-key-to-nginx key) vals))
 ;; This one the vals should be [{path location-data}
 (defmethod str-server-line :locations [ky vls]
   (let [
@@ -126,6 +129,8 @@
                       (format "\tlocation %s {\n%s\t}\n" path
                               location-str))) vls)] 
     (apply str data))) 
+(defmethod str-server-line :default [key vals]
+  (format "\t%s %s;\n" (convert-key-to-nginx key) vals))
 
 (defmulti str-upstream-line (fn [key val] key))
 (defmethod str-upstream-line :default [key val]
@@ -260,6 +265,10 @@
     (directory
       nginx-pid-dir
       :owner nginx-user :group nginx-group :mode "0755") 
+    ;; Because we are requiring the site data to have a .site extension
+    ;; when we first install nginx we need to delete the default file
+    ;; otherwise we will have duplicate files
+    (file (format "%s/sites-enabled/default" nginx-conf-dir) :action :delete :force :true)
     ; (when (= :install (get settings :action :install))
     ;         (parameter/parameters
     ;           [:nginx :owner] nginx-user
@@ -274,6 +283,7 @@
     (assoc-settings :nginx merged-settings {:instance-id instance-id})))
 
 (defplan mime
+  "Install the mime file"
   []
   (remote-file
     (format "%s/mime.types" nginx-conf-dir)
@@ -321,7 +331,8 @@
          site-fn (fn [filename]
                   (remote-file
                     filename
-                    :content contents))]
+                    :content contents
+                    :literal true))]
 
         (directory (format "%s/sites-available" nginx-conf-dir))
         (directory (format "%s/sites-enabled" nginx-conf-dir))
@@ -333,18 +344,20 @@
           (file enabled :action :delete :force true))
         (when (= action :remove)
           (file available :action :delete :force true)
-          (file enabled :action :delete :force true))))))
+          (file enabled :action :delete :force true))
+        ))))
 
 (defn nginx
+  "Defines some default nginx phases"
   [settings]
   (api/server-spec
     :phases {
              :bootstrap (api/plan-fn 
                           (automated-admin-user/automated-admin-user))
              :settings (api/plan-fn (nginx-settings settings))
-             :configure (api/plan-fn (install-nginx)
+             :install (api/plan-fn (install-nginx)
                                      (init)
-                                     (mime)
-                                     (site))
+                                     (mime))
+             :configure (api/plan-fn (site))
              :nginx-restart (api/plan-fn (service "nginx" :action :restart))}))
 
