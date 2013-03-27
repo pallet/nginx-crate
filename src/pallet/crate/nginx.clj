@@ -71,14 +71,14 @@
 
 
 (def default-site
-  {:sites [:action :enable
+  {:sites [{ :action :enable 
            :name "default"
-           :upstreams []
+           :upstreams [] 
            :servers [{:server-name "localhost"
                       :listen "80"
                       :access-log  [(str nginx-log-dir "/access.log")] 
                       :locations [{:path "/"
-                                   :index ["index.html" "index.htm"]}]}]]})
+                                   :index ["index.html" "index.htm"]}]}]}]})
 
 (defn convert-key-to-nginx [key]
   (clojure.string/replace (name key) "-" "_"))
@@ -342,7 +342,7 @@
              :bootstrap (api/plan-fn 
                           (automated-admin-user/automated-admin-user))
              :settings (api/plan-fn (nginx-settings settings))
-             :configure (api/plan-fn ;(install-nginx)
+             :configure (api/plan-fn (install-nginx)
                                      (init)
                                      (mime)
                                      (site))
