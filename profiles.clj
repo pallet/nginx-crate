@@ -8,9 +8,6 @@
              "--selector" "live-test"]
             "live-test-down" ["pallet" "down" "--selector" "live-test"]
             "live-test" ["do" "live-test-up," "live-test-down"]}
-  :test-selectors {:default (complement :live-test)
-                   :live-test :live-test
-                   :all (constantly true)}
   :repositories {"boundary-site" "http://maven.boundary.com/artifactory/repo"}}
  :doc {:dependencies [[com.palletops/pallet-codox "0.1.0-SNAPSHOT"]]
        :plugins [[codox/codox.leiningen "0.6.4"]
