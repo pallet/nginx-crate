@@ -39,12 +39,19 @@
 
 (deftest str-upstream-blocks-test
   (let [
-        data [{:lines [{:server "127.0.0.180"}] :name "http_backend"}
+        data [{:lines [{:server "127.0.0.180"}
+                       { :ip-hash ""}
+                        { :least-conn ""}
+                        { :keepalive "32"} 
+                        ] :name "http_backend"}
               {:lines [{:server "127.0.0.1:90"}] :name "http_backend2"}
               ]]
     (is (= (str-upstream-blocks data)
            (str "upstream http_backend {\n"
                 "\tserver 127.0.0.180;\n"
+                "\tip_hash;\n"
+                "\tleast_conn;\n"
+                "\tkeepalive 32;\n"
                 "}\n"
                 "upstream http_backend2 {\n"
                 "\tserver 127.0.0.1:90;\n"
@@ -103,5 +110,10 @@
              {:server {:group-name :n :image {:os-family :ubuntu}}}
              (nginx-settings site-test-data)
              (site)))] 
+    (println "item1 ===========")
+    (println item1)
+    (println "item2 ===========")
+    (println item2)
+
     (is (= item1 item2))))
 

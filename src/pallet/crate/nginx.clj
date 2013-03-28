@@ -131,6 +131,14 @@
   (format "\t%s %s;\n" (convert-key-to-nginx key) vals))
 
 (defmulti str-upstream-line (fn [key val] key))
+;; Ignore the val for ip_hash
+(defmethod str-upstream-line :ip-hash [key val]
+  (format "\t%s;\n" (convert-key-to-nginx key)))
+;; Ignore the val for least-conn 
+(defmethod str-upstream-line :least-conn [key val]
+  (format "\t%s;\n" (convert-key-to-nginx key)))
+(defmethod str-upstream-line :keepalive [key val]
+  (format "\t%s %s;\n" (convert-key-to-nginx key) val))
 (defmethod str-upstream-line :default [key val]
   (format "\t%s %s;\n" (convert-key-to-nginx key) val))
 
