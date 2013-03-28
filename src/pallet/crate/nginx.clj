@@ -38,8 +38,6 @@
 
 (def nginx-init-script "crate/nginx/nginx")
 (def nginx-conf "crate/nginx/nginx.conf")
-(def nginx-site "crate/nginx/site")
-(def nginx-location "crate/nginx/location")
 (def nginx-passenger-conf "crate/nginx/passenger.conf")
 (def nginx-mime-conf "crate/nginx/mime.types")
 
