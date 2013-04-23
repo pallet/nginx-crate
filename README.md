@@ -46,6 +46,7 @@ For instance the below could be passed in as settings.  It will enable the defau
 It basically creates a reverse proxy for http and https connections to a server.  I use
 this configuration for httpkit.
 
+```clj
 (def http-server-config
   {:sites [{:action :enable
     :name "default.site"
@@ -73,7 +74,7 @@ this configuration for httpkit.
                                               {:X-Forwarded-For 
                                                "$proxy_add_x_forwarded_for"}, 
                                                {:Host "$http_host"}]}]}]}]})
-
+```
 
 
 
