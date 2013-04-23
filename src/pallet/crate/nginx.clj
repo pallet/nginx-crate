@@ -358,8 +358,6 @@
   [settings]
   (api/server-spec
     :phases {
-             :bootstrap (api/plan-fn 
-                          (automated-admin-user/automated-admin-user))
              :settings (api/plan-fn (nginx-settings settings))
              :install (api/plan-fn (install-nginx)
                                      (init)
