@@ -1,5 +1,5 @@
 {:dev
- {:dependencies [[com.palletops/pallet "0.8.0-beta.3" :classifier "tests"]
+ {:dependencies [[com.palletops/pallet "0.8.0-beta.8" :classifier "tests"]
                  [com.palletops/crates "0.1.0"]
                  [ch.qos.logback/logback-classic "1.0.9"]]
   :aliases {"live-test-up"

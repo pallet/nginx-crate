@@ -1,6 +1,6 @@
-(defproject com.palletops/nginx-crate "0.8.0-SNAPSHOT"
+(defproject org.clojars.strad/nginx-crate "0.8.0"
   :description "Create for nginx installation"
-  :url "http://github.com/pallet/nginx-crate"
+  :url "http://github.com/rstradling/nginx-crate"
   :license {:name "Eclipse Pulic License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.4.0"]
