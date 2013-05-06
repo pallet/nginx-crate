@@ -28,12 +28,13 @@
 (defn ftp-path [version]
   (format "http://nginx.org/download/nginx-%s.tar.gz" version))
 
-(def nginx-conf-dir "/etc/nginx")
-(def nginx-install-dir "/opt/nginx")
+
+(def nginx-default-ownership
+  {:user "www-data"
+   :group "www-data"})
+
 (def nginx-log-dir "/var/log/nginx")
-(def nginx-pid-dir "/var/run/nginx")
-(def nginx-user "www-data")
-(def nginx-group "www-data")
+(def nginx-install-dir "/opt/nginx")
 (def nginx-binary "/usr/local/sbin/nginx")
 
 (def nginx-init-script "crate/nginx/nginx")
@@ -43,7 +44,10 @@
 
 (def nginx-defaults
   {:version "1.2.6"
-   :modules [:http_ssl_module]})
+   :modules [:http_ssl_module]
+   :nginx-conf-dir "/etc/nginx"
+   :nginx-pid-dir "/var/run/nginx"
+   })
 
 (def nginx-default-conf
   {:gzip "on"
@@ -187,9 +191,10 @@
   :configuration map        -- map of values for nginx.conf"
   [& {:keys [instance-id]}]
   (let [settings (get-settings :nginx {:instance-id instance-id})
+        {:keys [user group nginx-conf-dir nginx-pid-dir]} settings
         version (settings :version)
-        modules (settings :version)
         basename (str "nginx-" version)
+        _ (println "----------nginx-pid-dir = " nginx-pid-dir)
         tarfile (str basename ".tar.gz")
         ;; Should use tmp-dir but tmp-dir does not work on Ubuntu
         ;; tmp-dir from pallet should be made more general
@@ -206,8 +211,8 @@
 
     (doseq [p src-packages]
       (package p))
-    (user
-      nginx-user
+    (pallet.actions/user
+      user
       :home nginx-install-dir :shell :false :create-home true :system true)
     (directory nginx-install-dir :owner "root")
     (remote-directory
@@ -250,11 +255,11 @@
                 merge {}
                 [nginx-default-conf
                  (settings :configuration)
-                 (strint/capture-values nginx-user nginx-group)])
-      :owner "root" :group nginx-group :mode "0644") 
+                 (strint/capture-values user group nginx-pid-dir)])
+      :owner "root" :group group :mode "0644") 
     (directory
       (format "%s/conf.d" nginx-conf-dir)
-      :owner nginx-user :group nginx-group :mode "0755") 
+      :owner user :group group :mode "0755") 
     (when (:passenger settings)
       (remote-file
         (format "%s/conf.d/passenger.conf" nginx-conf-dir)
@@ -267,78 +272,91 @@
                    (stevedore/script
                      @("which ruby"))}
                   (:configuration settings))
-        :owner "root" :group nginx-group :mode "0644")) 
+        :owner "root" :group group :mode "0644")) 
     (directory
       nginx-pid-dir
-      :owner nginx-user :group nginx-group :mode "0755") 
+      :owner user :group group :mode "0755") 
     ;; Because we are requiring the site data to have a .site extension
     ;; when we first install nginx we need to delete the default file
     ;; otherwise we will have duplicate files
     (file (format "%s/sites-enabled/default" nginx-conf-dir) :action :delete :force :true)
     ; (when (= :install (get settings :action :install))
     ;         (parameter/parameters
-    ;           [:nginx :owner] nginx-user
-    ;           [:nginx :group] nginx-group))
+    ;           [:nginx :owner] user
+    ;           [:nginx :group] group))
 
     ))
 
 (defplan nginx-settings
   "Install nginx"
   [{:keys [instance-id] :as settings}]
-  (let [merged-settings (merge nginx-defaults default-site settings)]
+  (let [merged-settings (merge nginx-defaults default-site nginx-default-ownership 
+                               settings)]
     (assoc-settings :nginx merged-settings {:instance-id instance-id})))
 
 (defplan mime
   "Install the mime file"
-  []
-  (remote-file
-    (format "%s/mime.types" nginx-conf-dir)
-    :owner "root"
-    :group nginx-group
-    :mode "0644"
-    :template nginx-mime-conf)
-  (file
-    (format "%s/mime.types.default" nginx-conf-dir)
-    :action :delete))
+  [& {:keys [instance-id] :as info}]
+  (let [
+        settings (get-settings :nginx {:instance-id instance-id})
+        group (:group settings)
+        nginx-conf-dir (:nginx-conf-dir settings)
+        ]
+    (remote-file
+      (format "%s/mime.types" nginx-conf-dir)
+      :owner "root"
+      :group group
+      :mode "0644"
+      :template nginx-mime-conf)
+    (file
+      (format "%s/mime.types.default" nginx-conf-dir)
+      :action :delete)))
 
 
 (defplan init
   "Creates a nginx init script."
   [& {:keys [instance-id] :as options}]
-  (let [options (get-settings :nginx {:instance-id instance-id})]
+  (let [options (get-settings :nginx {:instance-id instance-id})
+        nginx-conf-dir (:nginx-conf-dir options)
+        nginx-pid-dir (:nginx-pid-dir options) 
+        _ (println "nginx-pid-dir = " nginx-pid-dir)
+        ]
     (service-script
       "nginx"
       :template nginx-init-script 
-      :values {}
+      :values {:nginx-conf-dir nginx-conf-dir
+               :nginx-pid-dir nginx-pid-dir}
       :literal true))
   (if-not (:no-enable options)
     (service "nginx" :action :enable)))
 
 (defplan site
   "Enable or disable a site.  Options:
-   It takes in a map of site options.  For now the site data that 
-   is passed in is made up of the following data
-   {:sites [{:name <name-of-site>
-             :action :enable | :disable defaults to :enable
-             :upstreams [{}] ; Upstream servers configuration 
-             :servers [{}] ; Server blocks information including locations}]
-   }"
+  It takes in a map of site options.  For now the site data that 
+  is passed in is made up of the following data
+  {:sites [{:name <name-of-site>
+  :action :enable | :disable defaults to :enable
+  :upstreams [{}] ; Upstream servers configuration 
+  :servers [{}] ; Server blocks information including locations}]
+  }"
   [& {:keys [instance-id]}] 
   (let [settings (get-settings :nginx {:instance-id instance-id})
-        sites (:sites settings)] 
+        sites (:sites settings)
+        nginx-conf-dir (:nginx-conf-dir settings)
+        ] 
     (doseq [site sites]
       (let 
         [
          {:keys [action name upstreams servers] :or {action :enable} :as site-options}
-              site 
+         site 
          available (format "%s/sites-available/%s" nginx-conf-dir name)
          enabled (format "%s/sites-enabled/%s" nginx-conf-dir name)
          contents (str-site-file site-options)
          site-fn (fn [filename]
-                  (remote-file
-                    filename
-                    :content contents
-                    :literal true))]
+                   (remote-file
+                     filename
+                     :content contents
+                     :literal true))]
 
         (directory (format "%s/sites-available" nginx-conf-dir))
         (directory (format "%s/sites-enabled" nginx-conf-dir))
@@ -360,8 +378,8 @@
     :phases {
              :settings (api/plan-fn (nginx-settings settings))
              :install (api/plan-fn (install-nginx)
-                                     (init)
-                                     (mime))
+                                   (init)
+                                   (mime))
              :configure (api/plan-fn (site))
              :nginx-restart (api/plan-fn (service "nginx" :action :restart))}))
 

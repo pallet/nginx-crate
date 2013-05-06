@@ -71,7 +71,7 @@ DAEMON=/usr/local/sbin/nginx
 PS="nginx"
 PIDNAME="nginx"                     #lets you do $PS-slave
 PIDFILE=$PIDNAME.pid                #pid file
-PIDSPATH=/var/run
+PIDSPATH=~{nginx-pid-dir}
 
 DESCRIPTION="Nginx Server..."
 
@@ -83,7 +83,7 @@ TRUE=1                              #boolean
 FALSE=0                             #boolean
 
 lockfile=/var/lock/subsys/nginx
-NGINX_CONF_FILE="/etc/nginx/nginx.conf"
+NGINX_CONF_FILE="~{nginx-conf-dir}/nginx.conf"
 
 #------------------------------------------------------------------------------
 #                               Simple Tests
