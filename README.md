@@ -5,10 +5,28 @@ Hugo Duncans nginx-crate.  The main differences with this one being...
 * The crate is updated to work with Pallet 0.8.
 * The crate has been modified to use a much more recent version of nginx.
 * The crate's configurations are much more data driven.
-* The crate no longer supports passenger.
+* The crate no longer supports passenger (and is something that will hopefully be supported in the future once the ruby crates are modified for 0.8.0).
+
+## Notes
+* Please see the ReleaseNotes.md for more information regarding the releases and changes.  
+* You MAY need to make sure you have updated your packages before running the install phase.
+
+
+The settings expose A LOT of variables.  They can be divided into the terms nginx conf and nginx site configuration.  
+Settings should work absolute fine across nginx conf and nginx site configuration when using the `::download`
+install-strategy.  This is also the preferred strategy.
+
+If you want to use the package based nginx install, then please note only the nginx site configuration settings should be modified.
+
+
+## Settings
+The nginx crate uses the following settings:
+`:install-strategy` (`:packages` `::download`).  Default is `::download`
+Please see nginx.clj for more details on what the settings map can contain.
+
 
 ## Usage
-Artifacts are released [released to Clojars](https://clojars.org/strad/datomic-crate).  If you are using Maven, add the following definition to your `pom.xml`:
+Artifacts are released [released to Clojars](https://clojars.org/strad/nginx-crate).  If you are using Maven, add the following definition to your `pom.xml`:
 ```xml
 <repository>
  <id>clojars.org</id>
@@ -19,7 +37,7 @@ Artifacts are released [released to Clojars](https://clojars.org/strad/datomic-c
 ### The Most Recent Release
 With Leiningen
 ```clojure
-  [org.clojars.strad/nginx-crate "0.8.0"]
+  [org.clojars.strad/nginx-crate "0.8.1"]
 ```
 
 With Maven
@@ -27,7 +45,7 @@ With Maven
    <dependency>
       <groupId>org.clojars.strad</groupId>
       <artifactId>nginx-crate</artifactId>
-      <version>0.8.0</version>
+      <version>0.8.1</version>
    </dependency>
 ```
 
