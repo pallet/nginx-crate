@@ -17,7 +17,8 @@
     [pallet.core.session :as session]
     [pallet.version-dispatch :refer [defmethod-version-plan
                                      defmulti-version-plan]]
-    [clojure.string :as string])
+    [clojure.string :as string]
+    [pallet.crate.nginx-config :as config])
   (:use
     pallet.thread-expr
     [pallet.script.lib :only [tmp-dir]]))
@@ -53,7 +54,7 @@
          :install-strategy ::download
          :modules [:http_ssl_module]
          :nginx-conf-dir "/etc/nginx"
-         :nginx-pid-dir "/var/run/nginx"
+         :nginx-pid-dir "/var/run"
          :dist-url "http://nginx.org/download/nginx-%s.tar.gz" 
          :nginx-log-dir "/var/log/nginx"
          :nginx-install-dir "/opt/nginx"
@@ -85,108 +86,6 @@
         site (a-default-site (merge settings options))]
     (merge settings site)))
 
-
-(defn convert-key-to-nginx [key]
-  (clojure.string/replace (name key) "-" "_"))
-
-(def join-with-space 
-  (partial clojure.string/join " "))
-
-(defmulti str-location-line (fn [key val] key))
-;; vals for proxy-set-header should be an array of dictionaries
-(defmethod str-location-line :proxy-set-header [ky vls]
-  (let [
-        output (map (fn [item] 
-                      (let [
-                            k (first (keys item))
-                            v (first (vals item))
-                            ] 
-                        (format "\t\t%s %s %s;\n" (convert-key-to-nginx ky) 
-                                (convert-key-to-nginx k) v)   
-                        )) vls)]
-    (apply str output)))
-;; vals for index will be an array of strings
-(defmethod str-location-line :index [ky vls]
-  (format "\t\t%s %s;\n" (convert-key-to-nginx ky)
-          (join-with-space vls)))
-(defmethod str-location-line :access-log [key vals]
-  (format "\t%s %s;\n" (convert-key-to-nginx key) (join-with-space vals))) 
-(defmethod str-location-line :default [key val]
-  (format "\t\t%s %s;\n" (convert-key-to-nginx key) val))
-
-;; DEFINING SERVERLINE MULTI-METHODS
-(defmulti str-server-line (fn [key val] key))
-;; vals for this should e an array of strings to print out
-(defmethod str-server-line :access-log [key vals]
-  (format "\t%s %s;\n" (convert-key-to-nginx key) (join-with-space vals))) 
-;; This one the vals should be [{path location-data}
-(defmethod str-server-line :locations [ky vls]
-  (let [
-        data (map (fn [dict]
-                    (let [
-                          path (:path dict)
-                          dict-minus (dissoc dict :path)
-                          location-str 
-                          (apply str (map (fn [[k v]]
-                                            (str-location-line k v)) dict-minus))]
-                      (format "\tlocation %s {\n%s\t}\n" path
-                              location-str))) vls)] 
-    (apply str data))) 
-(defmethod str-server-line :default [key vals]
-  (format "\t%s %s;\n" (convert-key-to-nginx key) vals))
-
-(defmulti str-upstream-line (fn [key val] key))
-;; Ignore the val for ip_hash
-(defmethod str-upstream-line :ip-hash [key val]
-  (format "\t%s;\n" (convert-key-to-nginx key)))
-;; Ignore the val for least-conn 
-(defmethod str-upstream-line :least-conn [key val]
-  (format "\t%s;\n" (convert-key-to-nginx key)))
-(defmethod str-upstream-line :keepalive [key val]
-  (format "\t%s %s;\n" (convert-key-to-nginx key) val))
-(defmethod str-upstream-line :default [key val]
-  (format "\t%s %s;\n" (convert-key-to-nginx key) val))
-
-(defn str-server-block
-  "The server data"
-  [dict]
-  (apply str (map (fn [[k v]]
-                    (str-server-line k v)) dict)))
-
-(defn str-server-blocks
-  "A sequence of maps"
-  [server-array]
-  (let [str-blocks (map (fn [server]
-                          (let [server-line (str-server-block server)]
-                            (format "server {\n%s}\n" server-line))) server-array)]
-    (apply str str-blocks)))
-
-(defn str-upstream-blocks
-  "A list of upstream blocks where the data is
-  [{:name \"http_backend\"
-  :lines [{:server \"127.0.0.1\"}]}]"
-  [upstream-blocks]
-  (apply str (map (fn [block] 
-                    (let [block-name (:name block)
-                          lines (:lines block)
-                          data (map (fn [item] 
-                                      (let [k (first (keys item))
-                                            v (first (vals item))
-                                            ]
-                                        (str-upstream-line k v))) lines)
-                          flat (apply str data)
-                          ]
-                      (format "upstream %s {\n%s}\n" block-name flat)))
-                  upstream-blocks)))
-
-(defn str-site-file
-  "A dictionary of {:upstreams [{:name <name> :lines <lines>}] 
-  :servers [{:locations [{:path <path>}]}]"
-  [site-map]
-  (format "%s%s" (str-upstream-blocks (:upstreams site-map))
-          (str-server-blocks (:servers site-map))))
-
-
 (defn url
   [{:keys [dist-url version] :as settings}]
   {:pre [dist-url version]}
@@ -198,13 +97,18 @@
   [os os-version version settings]
   (cond
     (= :packages (:install-strategy settings))
-    (when (empty? (:packages settings))
-      (assoc settings :packages ["nginx"])) 
+    (assoc settings :packages (or (:packages settings) ["nginx"]))
+
     (= :package-source (:install-strategy settings)) 
-    (throw (ex-info "package-source is an invalid install strategy for nginx"
-                    {:type :invalid-install-strategy :settings settings}))
-    ;(when (empty? (:package-source settings))
-    ;  (assoc settings :packages ["nginx"]))
+    (-> settings
+        (assoc :packages (or (:packages settings)
+                             ["nginx-full"]))
+        (assoc :package-source (or (:package-source settings)
+                                   {:name "debian-backports"
+                                    :aptitude {:url "http://backports.debian.org/debian-backports"
+                                               :release "squeeze-backports"
+                                               :scopes ["main"]}})))
+
     :else (assoc settings
                  :install-strategy ::download
                  :remote-file {:url (url settings)
@@ -223,7 +127,25 @@
         ]
     (file (format "%s/sites-enabled/default" nginx-conf-dir) :action :delete :force :true)))
 
-(defplan install-nginx
+
+(defn update-nginx-conf-file
+  "Will update the nginx conf file with the settings specified"
+  [settings]
+  (let [ {:keys [nginx-conf-dir nginx-default-conf user group
+           nginx-pid-dir nginx-conf-dir nginx-log-dir
+          nginx-conf]} settings] 
+    (pallet.actions/remote-file
+      (format "%s/nginx.conf" nginx-conf-dir)
+      :template nginx-conf
+      :values (reduce
+                merge {}
+                [nginx-default-conf
+                 (settings :configuration)
+                 (strint/capture-values user group nginx-pid-dir 
+                                        nginx-conf-dir nginx-log-dir)])
+      :owner "root" :group group :mode "0644")))
+
+(defplan install-nginx-via-download
   "Install nginx from source. Options:
   :version version-string   -- specify the version (default \"0.7.65\")
   :configuration map        -- map of values for nginx.conf"
@@ -288,16 +210,7 @@
                     (settings :add-modules))))
           ("make")
           ("make install")))) 
-    (pallet.actions/remote-file
-      (format "%s/nginx.conf" nginx-conf-dir)
-      :template nginx-conf
-      :values (reduce
-                merge {}
-                [nginx-default-conf
-                 (settings :configuration)
-                 (strint/capture-values user group nginx-pid-dir 
-                                        nginx-conf-dir nginx-log-dir)])
-      :owner "root" :group group :mode "0644") 
+     
     (directory
       (format "%s/conf.d" nginx-conf-dir)
       :owner user :group group :mode "0755") 
@@ -368,7 +281,7 @@
 
 (defmethod-plan crate-install/install ::download
   [facility instance-id]
-  (install-nginx :instance-id instance-id)
+  (install-nginx-via-download :instance-id instance-id)
   (init))
 
 (defplan install
@@ -379,6 +292,7 @@
         ret (crate-install/install :nginx instance-id)
         ]
     (remove-default-site)
+    (update-nginx-conf-file settings)
     ret))
 
 
@@ -403,7 +317,7 @@
          site 
          available (format "%s/sites-available/%s" nginx-conf-dir name)
          enabled (format "%s/sites-enabled/%s" nginx-conf-dir name)
-         contents (str-site-file site-options)
+         contents (config/str-site-file site-options)
          site-fn (fn [filename]
                    (remote-file
                      filename

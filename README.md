@@ -21,7 +21,7 @@ If you want to use the package based nginx install, then please note only the ng
 
 ## Settings
 The nginx crate uses the following settings:
-`:install-strategy` (`:packages` `::download`).  Default is `::download`
+`:install-strategy` (`:packages` `:package-source` `::download`).  Default is `::download`
 Please see nginx.clj for more details on what the settings map can contain.
 
 
@@ -37,7 +37,7 @@ Artifacts are released [released to Clojars](https://clojars.org/strad/nginx-cra
 ### The Most Recent Release
 With Leiningen
 ```clojure
-  [org.clojars.strad/nginx-crate "0.8.1"]
+  [org.clojars.strad/nginx-crate "0.8.2"]
 ```
 
 With Maven
@@ -45,7 +45,7 @@ With Maven
    <dependency>
       <groupId>org.clojars.strad</groupId>
       <artifactId>nginx-crate</artifactId>
-      <version>0.8.1</version>
+      <version>0.8.2</version>
    </dependency>
 ```
 

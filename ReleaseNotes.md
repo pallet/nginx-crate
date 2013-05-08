@@ -1,5 +1,10 @@
 # Release notes
 
+## nginx 0.8.2
+- Added support for package-source install-strategy
+- Fixed a bug if using install-strategy packages and defining your own package things would not work
+- Changed the location of the pid file to be consistent with package installs
+
 ## nginx 0.8.1
 - Changes nginx-restart to restart.  *Breaking Change*
 - Fixed a bug such that the nginx server would not restart after being installed.
