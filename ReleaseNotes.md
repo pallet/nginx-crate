@@ -1,4 +1,7 @@
 # Release notes
+## nginx 0.8.4
+- Fixed items related to making centos work
+- Fixed a few items related to the owner of the directory/files being root rather than the user passed in. 
 
 ## nginx 0.8.2
 - Added support for package-source install-strategy

@@ -10,8 +10,9 @@ Hugo Duncans nginx-crate.  The main differences with this one being...
 
 ## Notes
 * Please see the ReleaseNotes.md for more information regarding the releases and changes.  
-* You MAY need to make sure you have updated your packages before running the install phase.
+* **You MAY need to make sure you have updated your packages before running the install phase.**
 * Tested on Ubuntu
+* Tested on Centos 6.3+
 
 The settings expose A LOT of variables.  They can be divided into the terms nginx conf and nginx site configuration.  
 Settings should work absolute fine across nginx conf and nginx site configuration when using the `::download`
@@ -38,7 +39,7 @@ Artifacts are released [released to Clojars](https://clojars.org/strad/nginx-cra
 ### The Most Recent Release
 With Leiningen
 ```clojure
-  [org.clojars.strad/nginx-crate "0.8.3"]
+  [org.clojars.strad/nginx-crate "0.8.4"]
 ```
 
 With Maven
@@ -46,7 +47,7 @@ With Maven
    <dependency>
       <groupId>org.clojars.strad</groupId>
       <artifactId>nginx-crate</artifactId>
-      <version>0.8.3</version>
+      <version>0.8.4</version>
    </dependency>
 ```
 
