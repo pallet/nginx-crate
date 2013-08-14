@@ -39,7 +39,7 @@ Artifacts are released [released to Clojars](https://clojars.org/strad/nginx-cra
 ### The Most Recent Release
 With Leiningen
 ```clojure
-  [org.clojars.strad/nginx-crate "0.8.4"]
+  [org.clojars.strad/nginx-crate "0.8.3"]
 ```
 
 With Maven
@@ -47,14 +47,14 @@ With Maven
    <dependency>
       <groupId>org.clojars.strad</groupId>
       <artifactId>nginx-crate</artifactId>
-      <version>0.8.4</version>
+      <version>0.8.3</version>
    </dependency>
 ```
 
 ## Server Spec
 The nginx crate defines the nginx function, that takes a settings map and returns a default server-spec for
 installing nginx.  You can use this in a `group-spec` or `server-spec`.  The phases defined are
-`settings`, `install`, `configure`, `nginx-restart`.   The configure phase is where you can modify
+`settings`, `install`, `configure`, `run`, `stop`, `restart`.   The configure phase is where you can modify
 the upstream blocks and other configuration files.
 
 ```clj
