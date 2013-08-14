@@ -53,7 +53,7 @@ With Maven
 ## Server Spec
 The nginx crate defines the nginx function, that takes a settings map and returns a default server-spec for
 installing nginx.  You can use this in a `group-spec` or `server-spec`.  The phases defined are
-`settings`, `install`, `configure`, `nginx-restart`.   The configure phase is where you can modify
+`settings`, `install`, `configure`, `run`, `stop`, `restart`.   The configure phase is where you can modify
 the upstream blocks and other configuration files.
 
 ```clj
