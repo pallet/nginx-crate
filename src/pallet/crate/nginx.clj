@@ -23,8 +23,14 @@
     pallet.thread-expr
     [pallet.script.lib :only [tmp-dir]]))
 
-(def src-packages
+(defmulti src-packages (fn [os] os))
+(defmethod src-packages :centos [os]
+  ["gcc" "gcc-c++" "kernel-devel" "pcre" "pcre-devel" "zlib"
+   "zlib-devel" "openssl-devel" "openssl" "redhat-lsb"])
+(defmethod src-packages :default [os]
   ["libpcre3" "libpcre3-dev" "libssl1.0.0" "libssl-dev" "make" "build-essential"])
+
+
 
 (defn a-default-site 
   "Returns a log-dir for nginx"
@@ -46,8 +52,13 @@
                  (let [ fmt (format (first s) nginx-log-dir)]
                    [fmt])))))
 
+(defmulti get-init-script (fn [os-family] os-family))
+(defmethod get-init-script :centos [os-family] "crate/nginx/nginx.centos")
+(defmethod get-init-script :default [os-family] "crate/nginx/nginx")
 (defn default-settings [options]
-  (let [ settings 
+  (let [
+        os (pallet.crate/os-family)
+        settings 
         {:version "1.2.6"
          :user "www-data"
          :group "www-data"
@@ -59,7 +70,7 @@
          :nginx-log-dir "/var/log/nginx"
          :nginx-install-dir "/opt/nginx"
          :nginx-binary "/usr/local/sbin/nginx"
-         :nginx-init-script "crate/nginx/nginx"
+         :nginx-init-script (get-init-script os)
          :nginx-conf "crate/nginx/nginx.conf"
          :nginx-passenger-conf "crate/nginx/passenger.conf"
          :nginx-mime-conf "crate/nginx/mime.types"
@@ -133,7 +144,7 @@
   [settings]
   (let [ {:keys [nginx-conf-dir nginx-default-conf user group
            nginx-pid-dir nginx-conf-dir nginx-log-dir
-          nginx-conf]} settings] 
+                 nginx-conf]} settings]
     (pallet.actions/remote-file
       (format "%s/nginx.conf" nginx-conf-dir)
       :template nginx-conf
@@ -143,7 +154,7 @@
                  (settings :configuration)
                  (strint/capture-values user group nginx-pid-dir 
                                         nginx-conf-dir nginx-log-dir)])
-      :owner "root" :group group :mode "0644")))
+      :owner user :group group :mode "0644")))
 
 (defplan install-nginx-via-download
   "Install nginx from source. Options:
@@ -170,14 +181,13 @@
                              (stevedore/script
                                (str @("/usr/local/bin/passenger-config --root")
                                     "/ext/nginx")))))
-                   settings)]
-
-    (doseq [p src-packages]
+                   settings)
+        os (pallet.crate/os-family)]
+    (doseq [p (src-packages os)]
       (package p))
     (pallet.actions/user
-      user
-      :home nginx-install-dir :shell :false :create-home true :system true)
-    (directory nginx-install-dir :owner "root")
+        user
+        :home nginx-install-dir :shell :false :create-home true :system true)
     (utils/apply-map remote-directory nginx-install-dir remote-file)
     (when (:passenger settings)
       (package "g++")
@@ -265,12 +275,12 @@
   [& {:keys [instance-id] :as info}]
   (let [
         settings (get-settings :nginx {:instance-id instance-id})
-        {:keys [group nginx-conf-dir nginx-mime-conf
+        {:keys [group nginx-conf-dir nginx-mime-conf user
                 ]} settings
         ]
     (remote-file
       (format "%s/mime.types" nginx-conf-dir)
-      :owner "root"
+      :owner user
       :group group
       :mode "0644"
       :template nginx-mime-conf)
