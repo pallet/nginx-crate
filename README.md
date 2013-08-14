@@ -7,10 +7,11 @@ Hugo Duncans nginx-crate.  The main differences with this one being...
 * The crate's configurations are much more data driven.
 * The crate no longer supports passenger (and is something that will hopefully be supported in the future once the ruby crates are modified for 0.8.0).
 
+
 ## Notes
 * Please see the ReleaseNotes.md for more information regarding the releases and changes.  
 * You MAY need to make sure you have updated your packages before running the install phase.
-
+* Tested on Ubuntu
 
 The settings expose A LOT of variables.  They can be divided into the terms nginx conf and nginx site configuration.  
 Settings should work absolute fine across nginx conf and nginx site configuration when using the `::download`
@@ -37,7 +38,7 @@ Artifacts are released [released to Clojars](https://clojars.org/strad/nginx-cra
 ### The Most Recent Release
 With Leiningen
 ```clojure
-  [org.clojars.strad/nginx-crate "0.8.2"]
+  [org.clojars.strad/nginx-crate "0.8.3"]
 ```
 
 With Maven
@@ -45,7 +46,7 @@ With Maven
    <dependency>
       <groupId>org.clojars.strad</groupId>
       <artifactId>nginx-crate</artifactId>
-      <version>0.8.2</version>
+      <version>0.8.3</version>
    </dependency>
 ```
 
