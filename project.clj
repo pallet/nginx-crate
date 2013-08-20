@@ -1,4 +1,4 @@
-(defproject org.clojars.strad/nginx-crate "0.8.4"
+(defproject org.clojars.strad/nginx-crate "0.8.5-SNAPSHOT"
   :description "Create for nginx installation"
   :url "http://github.com/rstradling/nginx-crate"
   :license {:name "Eclipse Pulic License"
