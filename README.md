@@ -13,6 +13,7 @@ Hugo Duncans nginx-crate.  The main differences with this one being...
 * **You MAY need to make sure you have updated your packages before running the install phase.**
 * Tested on Ubuntu
 * Tested on Centos 6.3+
+* It expects the site file to have a .site extension.  There is an [enhancement][https://github.com/rstradling/nginx-crate/issues/3] that is entered to make this more flexible.
 
 The settings expose A LOT of variables.  They can be divided into the terms nginx conf and nginx site configuration.  
 Settings should work absolute fine across nginx conf and nginx site configuration when using the `::download`
@@ -69,7 +70,8 @@ this configuration for httpkit.
 ```clj
 (def http-server-config
   {:sites [{:action :enable
-    :name "default.site"
+    ;; Notice the .site file extension.  See the README notes section for more information.
+    :name "default.site" 
     :upstreams [{:lines [{:server "127.0.0.1:8080"}
                          {:keepalive 32}]
                  :name "http_backend"}]
@@ -99,6 +101,7 @@ this configuration for httpkit.
 
 
 ## Support
+Please enter bugs into the GitHub issues [db](https://github.com/rstradling/nginx-crate/issues/).  I will try to fix what I can when I can.  Remember pull requests are welcomed :).
 
 ## License
 
