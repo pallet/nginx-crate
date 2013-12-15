@@ -65,6 +65,8 @@
          :install-strategy ::download
          :modules [:http_ssl_module]
          :nginx-conf-dir "/etc/nginx"
+         :nginx-conf-wildcard "*.conf"
+         :nginx-sites-wildcard "*.site"
          :nginx-pid-dir "/var/run"
          :dist-url "http://nginx.org/download/nginx-%s.tar.gz" 
          :nginx-log-dir "/var/log/nginx"
@@ -144,7 +146,8 @@
   [settings]
   (let [ {:keys [nginx-conf-dir nginx-default-conf user group
            nginx-pid-dir nginx-conf-dir nginx-log-dir
-                 nginx-conf]} settings]
+                 nginx-conf nginx-conf-wildcard
+                 nginx-sites-wildcard]} settings]
     (pallet.actions/remote-file
       (format "%s/nginx.conf" nginx-conf-dir)
       :template nginx-conf
@@ -153,7 +156,9 @@
                 [nginx-default-conf
                  (settings :configuration)
                  (strint/capture-values user group nginx-pid-dir 
-                                        nginx-conf-dir nginx-log-dir)])
+                                        nginx-conf-dir nginx-log-dir
+                                        nginx-conf-wildcard
+                                        nginx-sites-wildcard)])
       :owner user :group group :mode "0644")))
 
 (defplan install-nginx-via-download

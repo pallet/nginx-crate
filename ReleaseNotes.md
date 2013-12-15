@@ -1,4 +1,7 @@
 # Release notes
+## nginx 0.8.6
+- Added the ability to specify the sites-enabled wildcard.
+
 ## nginx 0.8.4
 - Fixed items related to making centos work
 - Fixed a few items related to the owner of the directory/files being root rather than the user passed in. 

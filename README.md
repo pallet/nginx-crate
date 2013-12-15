@@ -40,7 +40,7 @@ Artifacts are released [released to Clojars](https://clojars.org/strad/nginx-cra
 ### The Most Recent Release
 With Leiningen
 ```clojure
-  [org.clojars.strad/nginx-crate "0.8.3"]
+  [org.clojars.strad/nginx-crate "0.8.6"]
 ```
 
 With Maven
@@ -48,7 +48,7 @@ With Maven
    <dependency>
       <groupId>org.clojars.strad</groupId>
       <artifactId>nginx-crate</artifactId>
-      <version>0.8.3</version>
+      <version>0.8.6</version>
    </dependency>
 ```
 
