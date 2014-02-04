@@ -83,6 +83,7 @@
       :root nil
       :index ["index.html" "index.htm"]
       :proxy_pass nil
+      :proxy_set_headers nil
       :rails-env nil
       :passenger-enabled nil})
 
@@ -214,8 +215,10 @@
   "Enable or disable a site.  Options:
 :listen        -- address to listen on
 :server_name   -- name
-:locations     -- locations (a seq of maps, with keys :location, :root
-                  :index, :proxy_pass :passenger-enabled :rails-env)"
+:locations     -- locations (a seq of maps, with keys :location (the apparent path), :root (the actual path),
+                  :index (name of the index file), :proxy_pass (url to pass to),
+                  :proxy_set_headers (map of header name to header value, either symbols or strings),
+                  :passenger-enabled :rails-env)"
   [session name & {:keys [locations action] :or {action :enable} :as options}]
   (let [available (format "%s/sites-available/%s" nginx-conf-dir name)
         enabled (format "%s/sites-enabled/%s" nginx-conf-dir name)
